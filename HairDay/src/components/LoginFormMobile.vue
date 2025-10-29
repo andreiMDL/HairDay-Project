@@ -141,12 +141,16 @@ async function handlelogin() {
   }
 
   try {
-    await axios.post(`${API_URL}/login`, {
+    const response = await axios.post(`${API_URL}/login`, {
       email: loginEmail.value,
       password: loginPassword.value,
     });
 
-    // const userId = response.data.user.id;
+    const token = response.data.token;
+
+    if (token) {
+      localStorage.setItem('hairday_token', token);
+    }
 
     successLogin(toast);
     router.push('/schedules');

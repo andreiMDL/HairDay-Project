@@ -87,10 +87,19 @@ async function handleLogin() {
   }
 
 	try {
-		await axios.post(`${API_URL}/login`, {
+		const response = await axios.post(`${API_URL}/login`, {
 			email: loginEmail.value,
       password: loginPassword.value,
 		})
+
+		const token = response.data.token;
+
+		if (token) {
+			localStorage.setItem('hairday_token', token);
+		} else {
+       throw new Error('Token não recebido do servidor.');
+    }
+
 		successLogin(toast);
 		router.push('/schedules');
 	} catch (error) {

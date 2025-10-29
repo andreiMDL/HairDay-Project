@@ -18,7 +18,7 @@
           <ul class="schedule-item-list">
             <li v-for="(appointment, index) in morningAppointments" v-bind:key="index" class="schedule-item">
               <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.client }}</span>
+              <span class="scheduled-customer">{{ appointment.barber }}</span>
             </li>
             <li v-if="morningAppointments.length === 0" class="schedule-item">
               <span>Nenhum agendamento para o dia selecionado.</span>
@@ -36,10 +36,10 @@
           <ul class="schedule-item-list">
             <li v-for="(appointment, index) in eveningAppointments" v-bind:key="index" class="schedule-item">
               <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.client }}</span>
+              <span class="scheduled-customer">{{ appointment.barber }}</span>
             </li>
             <li v-if="eveningAppointments.length === 0" class="schedule-item">
-              <span>Nenhum agendamento para hoje.</span>
+              <span>Nenhum agendamento para o dia selecionado.</span>
             </li>
           </ul>
         </div>
@@ -54,10 +54,10 @@
           <ul class="schedule-item-list">
             <li v-for="(appointment, index) in nightAppointments" v-bind:key="index" class="schedule-item">
               <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.client }}</span>
+              <span class="scheduled-customer">{{ appointment.barber }}</span>
             </li>
             <li v-if="nightAppointments.length === 0" class="schedule-item">
-              <span>Nenhum agendamento para hoje.</span>
+              <span>Nenhum agendamento para o dia selecionado.</span>
             </li>
           </ul>
         </div>
@@ -66,17 +66,21 @@
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAppointmentsStore } from '@/stores/appointments';
 import DpCalendar from '@/components/DpCalendar.vue';
 import dayjs from 'dayjs';
 
 defineOptions({
-  name: 'HairDaySchedules'
+  name: 'MyAgenda'
 });
 
 const appointmentsStore = useAppointmentsStore();
 const selectedDate = ref(new Date());
+
+onMounted(() => {
+  appointmentsStore.fetchAppointments();
+});
 
 const appointmentsForDay = computed(() => {
   return appointmentsStore.allAppointments.filter(app =>

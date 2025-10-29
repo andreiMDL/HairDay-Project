@@ -12,11 +12,13 @@ export const schedules = [
   {
     method: 'GET',
     path: '/schedules',
+    middleware: ensureAuthenticated,
     controller: get_schedules,
   },
   {
     method: 'DELETE',
     path: '/schedules/:id',
+    middleware: ensureAuthenticated,
     controller: remove_schedule,
   }
 

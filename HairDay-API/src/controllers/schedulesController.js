@@ -39,13 +39,22 @@ export function create_schedule({ request, response, database }) {
 };
 
 export function get_schedules({ request, response, database }) {
+  const user_id = request.userId;
+
+  if (!user_id) {
+    return response.writeHead(500).end(JSON.stringify({ message: 'Authentication context missing.' }));
+  }
+
+  const filters = { user_id: user_id };
+
   const { status } = request.query;
+  if (status) {
+    filters.status = status;
+  }
 
-  const filters = status ? { status } : null;
+  const userSchedules = database.select('schedules', filters);
 
-  const schedules = database.select('schedules', filters);
-
-  return response.end(JSON.stringify(schedules));
+  return response.end(JSON.stringify(userSchedules));
 };
 
 export function remove_schedule({ request, response, database }) {

@@ -72,6 +72,7 @@ import { avaiableDays, dayMap } from '@/stores/avaiableDays';
 import { validateBeforeSubmit } from '@/stores/validateFields';
 import { useToast } from "vue-toast-notification";
 import { useAppointmentsStore } from '@/stores/appointments';
+import { useRouter } from 'vue-router';
 import DropdownButton from '@/components/DropdownButton.vue';
 import DpCalendar from '@/components/DpCalendar.vue'
 import dayjs from 'dayjs';
@@ -81,6 +82,7 @@ defineOptions({
   name: 'HairDaySchedules'
 });
 
+const router = useRouter();
 const API_URL = 'http://localhost:3000';
 const appointmentsStore = useAppointmentsStore();
 const barberName = ref('');
@@ -137,15 +139,37 @@ async function validateFields() {
     .set('minute', parseInt(selectedHour.value.split(':')[1]))
     .toISOString();
 
-  showSuccess();
-
-  const newAppointment = {
+  const newAppointmentData = {
+    scheduled_for: scheduled_formatISO,
     barber: barberName.value,
-    date: selectedDate.value,
-    time: selectedHour.value,
   };
+  const token = localStorage.getItem('hairday_token');
 
-  appointmentsStore.addAppointment(newAppointment);
+  try {
+    const response = await axios.post(`${API_URL}/schedules`, newAppointmentData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    showSuccess();
+    appointmentsStore.addAppointment(response.data);
+
+  } catch (error) {
+    let errorMessage = 'Falha ao agendar. Tente novamente.';
+
+    if (error.response) {
+      if (error.response.status === 401 || error.response.status === 403) {
+        errorMessage = 'Sua sessão expirou ou o token é inválido. Faça login novamente';
+        localStorage.removeItem('hairday_token');
+        router.push('/');
+      } else {
+        errorMessage = error.response.data.message || errorMessage;
+      }
+      toast.error(errorMessage, { position: 'top', duration: 4000 });
+
+    }
+  }
 };
 
 const isDayAvailable = computed(() => {
