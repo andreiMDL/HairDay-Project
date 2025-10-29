@@ -22,7 +22,7 @@ export const mandatoryFields = (toast, message = 'Preencha os campos obrigatóri
   });
 };
 
-export const emailAlreadyExists = (toast, message = 'Não existe nenhuma conta com esse email') => {
+export const emailNotExists = (toast, message = 'Não existe nenhuma conta com esse email') => {
   toast.error(message, {
     position: 'top',
     duration: 3000,
@@ -38,7 +38,7 @@ export const incorrectInfos = (toast, message = 'Email ou senha estão incorreto
   });
 };
 
-export const emailNotExists = (toast, message = 'Este email já está cadastrado.') => {
+export const emailAlreadyExists = (toast, message = 'Este email já está cadastrado.') => {
   toast.error(message, {
     position: 'top',
     duration: 3000,

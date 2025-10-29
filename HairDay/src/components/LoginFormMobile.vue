@@ -41,8 +41,8 @@
 import { ref, reactive } from 'vue';
 import { useToast } from 'vue-toast-notification';
 import { useRouter } from 'vue-router';
+import { emailAlreadyExists, failedLogin, failedSingup, incorrectInfos, mandatoryFields, serverError, successLogin, successSignup } from '@/utils/toastMessages.js';
 import axios from 'axios';
-import { emailAlreadyExists, failedLogin, failedSingup, incorrectInfos, mandatoryFields, serverError, successLogin } from '@/utils/toastMessages.js';
 
 const toast = useToast();
 const router = useRouter();
@@ -107,6 +107,7 @@ async function handleSignup() {
     signupEmail.value = '';
     signupPassword.value = '';
 
+    successSignup(toast);
     toggleForm();
   } catch (error) {
     if (error.response) {
@@ -158,9 +159,9 @@ async function handlelogin() {
         incorrectInfos(toast);
       }
     } else if (error.request) {
-      serverError(error);
+      serverError(toast);
     } else {
-      failedSingup(error);
+      failedSingup(toast);
     }
 
     console.error('Login Error:', error);

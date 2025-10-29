@@ -40,11 +40,15 @@
 	</div>
 </template>
 <script setup>
+import { emailAlreadyExists, failedLogin, failedSingup, incorrectInfos, mandatoryFields, serverError, successLogin, successSignup } from '@/utils/toastMessages';
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toast-notification';
+import axios from 'axios';
 
 const router = useRouter();
+const API_URL = 'http://localhost:3000';
+
 const isPanelActive = ref(false);
 
 const loginEmail = ref('');
@@ -62,39 +66,7 @@ const loginErrors = reactive({
 	password: false,
 });
 
-const successLogin = () => {
-	toast.success('Login realizado com sucesso!', {
-		position: 'top',
-		duration: 3000,
-		dismissible: true,
-	});
-};
-
-const failedLogin = () => {
-	toast.error('Erro ao realizar login. Por favor, preencha o email e a senha.', {
-		position: 'top',
-		duration: 3000,
-		dismissible: true,
-	});
-};
-
-const successSignup = () => {
-	toast.success(`Cadastro realizado com sucesso! Seja bem vindo(a) ${signupName.value}!`, {
-		position: 'top',
-		duration: 3000,
-		dismissible: true,
-	});
-};
-
-const failedSingup = () => {
-	toast.error('Erro ao realizar cadastro, tente novamente!', {
-		position: 'top',
-		duration: 3000,
-		dismissible: true,
-	})
-}
-
-const handleLogin = () => {
+async function handleLogin() {
 	loginErrors.email = false;
 	loginErrors.password = false;
 
@@ -110,44 +82,89 @@ const handleLogin = () => {
 	}
 
 	if (hasError) {
-    failedLogin();
+    mandatoryFields(toast);
     return;
   }
 
-  successLogin();
-  router.push('/schedules');
+	try {
+		await axios.post(`${API_URL}/login`, {
+			email: loginEmail.value,
+      password: loginPassword.value,
+		})
+		successLogin(toast);
+		router.push('/schedules');
+	} catch (error) {
+		loginErrors.email = true;
+      loginErrors.password = true;
+
+    if (error.response) {
+      if (error.response.status === 401) {
+        incorrectInfos(toast);
+      }
+    } else if (error.request) {
+      serverError(toast);
+    } else {
+      failedSingup(toast);
+    }
+
+    console.error('Login Error:', error);
+    failedLogin(toast);
+	}
 };
 
 const signupName = ref('');
 const signupEmail = ref('');
 const signupPassword = ref('');
 
-function handleSignup() {
-	signupErrors.name = false;
-	signupErrors.email = false;
-	signupErrors.password = false;
+async function handleSignup() {
+  signupErrors.name = false;
+  signupErrors.email = false;
+  signupErrors.password = false;
 
-	let hasError = false;
+  let hasError = false;
 
-	if (!signupName.value) {
-		signupErrors.name = true;
-		hasError = true;
-	}
-	if (!signupEmail.value) {
-		signupErrors.email = true;
-		hasError = true;
-	}
-	if (!signupPassword.value) {
-		signupErrors.password = true;
-		hasError = true;
-	}
+  if (!signupName.value) {
+    signupErrors.name = true;
+    hasError = true;
+  }
+  if (!signupEmail.value) {
+    signupErrors.email = true;
+    hasError = true;
+  }
+  if (!signupPassword.value) {
+    signupErrors.password = true;
+    hasError = true;
+  }
 
-	if (hasError) {
-		failedSingup();
-		return;
-	}
+  if (hasError) {
+    mandatoryFields(toast);
+    return;
+  }
 
-	successSignup();
+  try {
+    await axios.post(`${API_URL}/users`, {
+      name: signupName.value,
+      email: signupEmail.value,
+      password: signupPassword.value,
+    });
+
+    signupName.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+
+		successSignup(toast);
+		isPanelActive.value = false;
+
+  } catch (error) {
+    if (error.response) {
+      signupErrors.email = true;
+      emailAlreadyExists(toast);
+    } else if (error.request) {
+      serverError(toast);
+    } else {
+      failedSingup(toast);
+    }
+  }
 }
 
 </script>
