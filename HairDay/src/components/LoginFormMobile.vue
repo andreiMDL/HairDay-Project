@@ -197,14 +197,14 @@ async function handlelogin() {
   justify-content: center;
   align-items: center;
   margin-top: 2rem;
-  padding-bottom: 1rem;
+  /* padding-bottom: 1rem; */
 }
 
 .form-container {
   position: relative;
   width: 90dvw;
   max-width: 400px;
-  height: 65dvh;
+  height: 75dvh;
   max-height: 600px;
   display: flex;
   background-color: var(--color-gray-800);
@@ -240,7 +240,7 @@ form {
 h1 {
   font-weight: bold;
   color: #eee;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
 }
 
 input {

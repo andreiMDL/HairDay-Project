@@ -64,7 +64,7 @@ img {
     margin: 0;
     min-height: 100dvh;
     height: 100dvh;
-      width: 100dvw;
+    width: 100dvw;
     display: block;
     overflow: hidden;
   }
