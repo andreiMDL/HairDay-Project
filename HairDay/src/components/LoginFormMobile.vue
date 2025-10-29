@@ -204,7 +204,7 @@ async function handlelogin() {
   position: relative;
   width: 90dvw;
   max-width: 400px;
-  height: 75dvh;
+  height: 80dvh;
   max-height: 600px;
   display: flex;
   background-color: var(--color-gray-800);

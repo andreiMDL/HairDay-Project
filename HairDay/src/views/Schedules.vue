@@ -53,7 +53,7 @@
         </div>
       </div>
       <div class="client-dropdown">
-        <p class="schedule-picker-subtitle">Cliente</p>
+        <p class="schedule-picker-subtitle">Barbeiro</p>
       </div>
       <div class="select-barber">
         <DropdownButton v-model="barberName" v-bind:class="{ 'has-error': errors.barberName }" />
