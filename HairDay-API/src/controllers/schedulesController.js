@@ -1,31 +1,33 @@
 import { randomUUID } from 'node:crypto';
 
 export function create_schedule({ request, response, database }) {
-  const { customer_id, scheduled_for, barber } = request.body;
+  const user_id =  request.userId;
 
-  if (!customer_id || !scheduled_for || !barber) {
+  const { scheduled_for, barber } = request.body;
+
+  if (!scheduled_for || !barber) {
     return response.writeHead(400).end(
       JSON.stringify({
-        message: 'customer_id, barber and scheduled_for are required',
+        message: 'user_id, barber and scheduled_for are required',
       })
     );
   };
 
-  const [customer] = database.select('users', { id: customer_id });
+  const [user] = database.select('users', { id: user_id });
 
-  if (!customer) {
-    return response.writeHead(404).end(
+  if (!user) {
+    return response.writeHead(500).end(
       JSON.stringify({
-        message: `Customer with ID ${customer_id} not found.`,
+        message: `User data not found for valid token ID: ${user_id}.`,
       })
     );
   }
 
   const schedule = {
     id: randomUUID(),
-    customer_id,
-    customer_name: customer.name,
-    customer_email: customer.email,
+    user_id,
+    user_name: user.name,
+    user_email: user.email,
     barber,
     scheduled_for,
     created_at: new Date(),

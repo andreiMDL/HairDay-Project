@@ -34,8 +34,23 @@ export class Database {
 
     if (filters) {
       data = data.filter((row) => {
-        return Object.entries(filters).some(([key, value]) => {
-          return row[key].toLowerCase().includes(value.toLowerCase());
+        return Object.entries(filters).every(([key, value]) => {
+
+          if (!row.hasOwnProperty(key)) {
+            return false;
+          }
+
+          const rowValue = row[key];
+
+          if (!row.hasOwnProperty(key)) {
+            return false;
+          }
+
+          if (typeof rowValue === 'string' && typeof value === 'string') {
+            return rowValue.toLowerCase() === value.toLowerCase();
+          }
+
+          return rowValue === value;
         });
       });
     }

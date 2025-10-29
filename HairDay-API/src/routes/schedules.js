@@ -1,10 +1,12 @@
 import { create_schedule, get_schedules, remove_schedule } from "../controllers/schedulesController.js";
+import { ensureAuthenticated } from "../middlewares/authMiddleware.js";
 
 
 export const schedules = [
   {
     method: 'POST',
     path: '/schedules',
+    middleware: ensureAuthenticated,
     controller: create_schedule,
   },
   {

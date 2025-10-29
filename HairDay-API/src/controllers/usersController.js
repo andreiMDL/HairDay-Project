@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const saltRounds = 10;
 
@@ -32,6 +33,8 @@ export function create_user({ request, response, database }) {
 };
 
 export function login_user({ request, response, database }) {
+  const JWT_SECRET = process.env.JWT_SECRET;
+
   const { email, password } = request.body;
 
   const [user] = database.select('users', { email });
@@ -54,12 +57,20 @@ export function login_user({ request, response, database }) {
     );
   }
 
+  const payload = {
+    id: user.id,
+    name: user.name,
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, {});
+
   const { password: _, ...user_data } = user;
 
   return response.writeHead(200).end(
     JSON.stringify({
       message: 'Login successful!',
       user: user_data,
+      token: token,
     })
   );
 }
@@ -95,7 +106,3 @@ export function update_user({ request, response, database }) {
 
   return response.end();
 };
-
-
-
-

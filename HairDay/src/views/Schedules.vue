@@ -14,9 +14,12 @@
           <div v-if="scheduleForSelectedDay" class="schedule-picker-container">
             <p class="schedule-picker-subtitle">Manhã</p>
             <div class="schedule-picker-morning">
-              <span v-for="time in scheduleForSelectedDay.morning" v-bind:key="time" class="avaiable-schedule"
-                v-on:click="!isTimeBooked(time) && (selectedHour = (selectedHour === time ? null : time))"
-                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time) }">
+              <span
+                v-for="time in scheduleForSelectedDay.morning"
+                v-bind:key="time"
+                class="avaiable-schedule"
+                v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
+                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time), 'past-schedule': isTimePast(time) }">
                 {{ time }}
               </span>
             </div>
@@ -24,9 +27,10 @@
           <div class="schedule-picker-container">
             <p class="schedule-picker-subtitle">Tarde</p>
             <div class="schedule-picker-morning">
-              <span v-for="time in scheduleForSelectedDay.evening" v-bind:key="time" class="avaiable-schedule"
-                v-on:click="!isTimeBooked(time) && (selectedHour = (selectedHour === time ? null : time))"
-                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time) }">
+              <span
+                v-for="time in scheduleForSelectedDay.evening" v-bind:key="time" class="avaiable-schedule"
+                v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
+                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time), 'past-schedule': isTimePast(time) }">
                 {{ time }}
               </span>
             </div>
@@ -34,9 +38,10 @@
           <div class="schedule-picker-container">
             <p class="schedule-picker-subtitle">Noite</p>
             <div class="schedule-picker-morning">
-              <span v-for="time in scheduleForSelectedDay.night" v-bind:key="time" class="avaiable-schedule"
-                v-on:click="!isTimeBooked(time) && (selectedHour = (selectedHour === time ? null : time))"
-                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time) }">
+              <span
+                v-for="time in scheduleForSelectedDay.night" v-bind:key="time" class="avaiable-schedule"
+                v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
+                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time),'past-schedule': isTimePast(time) }">
                 {{ time }}
               </span>
             </div>
@@ -50,10 +55,8 @@
       <div class="client-dropdown">
         <p class="schedule-picker-subtitle">Cliente</p>
       </div>
-      <div class="select-customer">
-        <!-- <DropdownButton/> -->
-        <input type="customerName" name="customerName" placeholder="Cliente" v-model="customerName"
-          v-bind:class="{ 'has-error': errors.customerName }">
+      <div class="select-barber">
+        <DropdownButton v-model="barberName" v-bind:class="{ 'has-error': errors.barberName }" />
       </div>
       <div class="schedule-submit">
         <button class="submit-schedule" v-on:click="validateFields">
@@ -69,16 +72,18 @@ import { avaiableDays, dayMap } from '@/stores/avaiableDays';
 import { validateBeforeSubmit } from '@/stores/validateFields';
 import { useToast } from "vue-toast-notification";
 import { useAppointmentsStore } from '@/stores/appointments';
+import DropdownButton from '@/components/DropdownButton.vue';
 import DpCalendar from '@/components/DpCalendar.vue'
 import dayjs from 'dayjs';
-// import DropdownButton from '@/components/DropdownButton.vue';
+import axios from 'axios';
 
 defineOptions({
   name: 'HairDaySchedules'
 });
 
+const API_URL = 'http://localhost:3000';
 const appointmentsStore = useAppointmentsStore();
-const customerName = ref('');
+const barberName = ref('');
 const selectedDate = ref(new Date());
 const selectedHour = ref(null);
 const toast = useToast()
@@ -93,6 +98,13 @@ const appointmentsForSelectedDay = computed(() => {
 function isTimeBooked(time) {
   return appointmentsForSelectedDay.value.some(app => app.time === time);
 };
+
+function isTimePast(time) {
+  const selectedDateDayjs = dayjs(selectedDate.value).format('YYYY-MM-DD');
+  const slotDateTime = dayjs(`${selectedDateDayjs} ${time}`, 'YYYY-MM-DD HH:mm');
+
+  return slotDateTime.isBefore(dayjs());
+}
 
 const showSuccess = () => {
   toast.success('Agendamento realizado com sucesso!', {
@@ -109,9 +121,9 @@ const showError = () =>
     dismissible: true,
   })
 
-function validateFields() {
+async function validateFields() {
   const fieldsToValidate = {
-    customerName: customerName.value,
+    barberName: barberName.value,
     selectedHour: selectedHour.value,
   };
 
@@ -120,10 +132,15 @@ function validateFields() {
     return;
   }
 
+  const scheduled_formatISO = dayjs(selectedDate.value)
+    .set('hour', parseInt(selectedHour.value.split(':')[0]))
+    .set('minute', parseInt(selectedHour.value.split(':')[1]))
+    .toISOString();
+
   showSuccess();
 
   const newAppointment = {
-    client: customerName.value,
+    barber: barberName.value,
     date: selectedDate.value,
     time: selectedHour.value,
   };
@@ -188,7 +205,7 @@ img {
   }
 }
 
-.select-customer {
+.select-barber {
   display: flex;
 }
 
@@ -327,6 +344,22 @@ input:hover {
   border: 2px solid var(--color-yellow);
   border-radius: .5rem;
   color: var(--color-yellow);
+}
+
+.past-schedule {
+   background-color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-800);
+  box-shadow: inset 0 0 10px var(--color-gray-800);
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+.past-schedule:hover {
+  background-color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-800);
+  box-shadow: inset 0 0 10px var(--color-gray-800);
+  color: var(--color-gray-400);
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

@@ -17,6 +17,13 @@ export function routeHandler(request, response) {
     request.params = params;
     request.query = query ? extractQueryParams(query) : {};
 
+    if (route.middleware) {
+      route.middleware(request, response, () => {
+        return route.controller({ request, response, database });
+      });
+      return;
+    }
+
     return route.controller({ request, response, database });
   }
 

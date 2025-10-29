@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import http from 'node:http';
 
 import { jsonHandler } from './middlewares/jsonHandler.js';
