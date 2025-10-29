@@ -47,6 +47,7 @@ import { useToast } from 'vue-toast-notification';
 import axios from 'axios';
 
 const router = useRouter();
+// TA CERTO
 const API_URL = import.meta.env.VITE_API_URL;
 
 const isPanelActive = ref(false);
