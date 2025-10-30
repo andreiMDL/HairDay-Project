@@ -9,10 +9,13 @@
     :disabled-week-days="disabledDays"
     :day-names="dayNames"
     format="dd/MM/yyyy"
+    :teleport="props.teleport"
+     :clearable="false"
   />
 </template>
+
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits, watch } from 'vue'
 
 const dayNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const locale = 'pt-BR';
@@ -22,13 +25,20 @@ const props = defineProps({
   modelValue: {
     type: Date,
     default: null
+  },
+  teleport: {
+    type: Boolean,
+    default: false
   }
+});
+
+watch(() => props.modelValue, () => {
+
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 function updateDate(novoValor) {
-  console.log('Sinal enviado do DpCalendar com a data:', novoValor)
   emit('update:modelValue', novoValor)
 }
 </script>

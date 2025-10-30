@@ -62,7 +62,15 @@ export const successSignup = (toast, message = 'Cadastro realizado com sucesso!'
   });
 };
 
-export const successLogin = (toast, message = 'Logion realizado com sucesso!') => {
+export const successLogin = (toast, message = 'Login realizado com sucesso!') => {
+  toast.success(message, {
+    position: 'top',
+    duratiom: 3000,
+    dismissible: true,
+  });
+};
+
+export const successDelete = (toast, message = 'Agendamento removido com sucesso!') => {
   toast.success(message, {
     position: 'top',
     duratiom: 3000,

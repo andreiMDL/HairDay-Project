@@ -47,7 +47,6 @@ import { useToast } from 'vue-toast-notification';
 import axios from 'axios';
 
 const router = useRouter();
-// TA CERTO
 const API_URL = import.meta.env.VITE_API_URL;
 
 const isPanelActive = ref(false);
@@ -152,18 +151,24 @@ async function handleSignup() {
   }
 
   try {
-    await axios.post(`${API_URL}/users`, {
+    const response = await axios.post(`${API_URL}/users`, {
       name: signupName.value,
       email: signupEmail.value,
       password: signupPassword.value,
     });
+
+		const token = response.data.token;
+
+		if (token) {
+			localStorage.setItem('hairday_token', token);
+		}
 
     signupName.value = '';
     signupEmail.value = '';
     signupPassword.value = '';
 
 		successSignup(toast);
-		isPanelActive.value = false;
+		router.push('/schedules');
 
   } catch (error) {
     if (error.response) {

@@ -12,36 +12,13 @@
         <span class="schedule-picker-title">Horários</span>
         <div v-if="isDayAvailable">
           <div v-if="scheduleForSelectedDay" class="schedule-picker-container">
-            <p class="schedule-picker-subtitle">Manhã</p>
-            <div class="schedule-picker-morning">
+            <div class="schedule-picker-time">
               <span
-                v-for="time in scheduleForSelectedDay.morning"
+                v-for="time in scheduleForSelectedDay.schedules"
                 v-bind:key="time"
                 class="avaiable-schedule"
                 v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
                 v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time), 'past-schedule': isTimePast(time) }">
-                {{ time }}
-              </span>
-            </div>
-          </div>
-          <div class="schedule-picker-container">
-            <p class="schedule-picker-subtitle">Tarde</p>
-            <div class="schedule-picker-morning">
-              <span
-                v-for="time in scheduleForSelectedDay.evening" v-bind:key="time" class="avaiable-schedule"
-                v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
-                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time), 'past-schedule': isTimePast(time) }">
-                {{ time }}
-              </span>
-            </div>
-          </div>
-          <div class="schedule-picker-container">
-            <p class="schedule-picker-subtitle">Noite</p>
-            <div class="schedule-picker-morning">
-              <span
-                v-for="time in scheduleForSelectedDay.night" v-bind:key="time" class="avaiable-schedule"
-                v-on:click="!isTimeBooked(time) && !isTimePast(time) && (selectedHour = (selectedHour === time ? null : time))"
-                v-bind:class="{ 'selected-schedule': time === selectedHour, 'has-error': errors.selectedHour, 'booked-schedule': isTimeBooked(time),'past-schedule': isTimePast(time) }">
                 {{ time }}
               </span>
             </div>
@@ -154,6 +131,7 @@ async function validateFields() {
 
     showSuccess();
     appointmentsStore.addAppointment(response.data);
+    selectedHour.value = null;
 
   } catch (error) {
     let errorMessage = 'Falha ao agendar. Tente novamente.';
@@ -185,9 +163,7 @@ const scheduleForSelectedDay = computed(() => {
 
   if (!daySchedules) {
     return {
-      morning: [],
-      evening: [],
-      night: []
+      schedules: []
     };
   }
 
@@ -199,7 +175,6 @@ const scheduleForSelectedDay = computed(() => {
 .container-schedules {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   box-sizing: border-box;
   background-color: var(--color-gray-700);
   flex: 1;
@@ -220,7 +195,7 @@ img {
   margin-top: 2rem;
 
   h2 {
-    margin-block: 1rem;
+    margin-bottom: 2rem;
     font-size: 32px;
   }
 
@@ -233,11 +208,6 @@ img {
   display: flex;
 }
 
-.schedule-input-title {
-  font-size: larger;
-  font-weight: 700;
-}
-
 .schedule-picker {
   display: flex;
   flex-direction: column;
@@ -245,14 +215,15 @@ img {
   margin-top: 2rem;
 }
 
-.schedule-picker-title {
+.schedule-input-title, .schedule-picker-title, .schedule-picker-subtitle {
   font-size: larger;
   font-weight: 700;
+  margin-bottom: 1.5rem;
 }
 
-.schedule-picker-morning {
+.schedule-picker-time {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: .5rem;
 }
 
@@ -262,7 +233,7 @@ img {
   align-items: center;
   background-color: var(--color-gray-600);
   box-shadow: 0 0 10px black;
-  padding: .5rem;
+  padding: .8rem;
   border-radius: .5rem;
   cursor: pointer;
   transition: .2s ease;
@@ -306,6 +277,7 @@ img {
   border-radius: 1rem;
   transition: .2s ease;
   margin-bottom: 3rem;
+  cursor: pointer;
 }
 
 .submit-schedule:hover {
@@ -394,7 +366,7 @@ input:hover {
     border-right: none;
   }
 
-  .schedule-picker-morning {
+  .schedule-picker-time {
     grid-template-columns: repeat(3, 1fr);
   }
 }

@@ -97,18 +97,24 @@ async function handleSignup() {
   }
 
   try {
-    await axios.post(`${API_URL}/users`, {
+    const response = await axios.post(`${API_URL}/users`, {
       name: signupName.value,
       email: signupEmail.value,
       password: signupPassword.value,
     });
+
+    const token = response.data.token;
+
+    if (token) {
+      localStorage.setItem('hairday_token', token);
+    }
 
     signupName.value = '';
     signupEmail.value = '';
     signupPassword.value = '';
 
     successSignup(toast);
-    toggleForm();
+    router.push('/schedules');
   } catch (error) {
     if (error.response) {
       signupErrors.email = true;

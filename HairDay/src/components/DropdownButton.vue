@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
 
 .dropdown-list {
   position: absolute;
-  top: calc(100% + 0.3rem);
+  bottom: calc(100% + 0.3rem);
   left: 0;
   right: 0;
   width: auto;

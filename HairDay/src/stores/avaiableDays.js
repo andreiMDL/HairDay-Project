@@ -10,7 +10,7 @@ export const dayMap = {
 
 export const avaiableDays = {
   'monday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -20,8 +20,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -32,17 +30,15 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',
       '19:30',
       '20:00',
-    ]
+    ],
   },
   'tuesday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -52,8 +48,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -64,17 +58,15 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',
       '19:30',
       '20:00',
-    ]
+    ],
   },
   'wednesday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -84,8 +76,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -96,8 +86,6 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',
@@ -106,7 +94,7 @@ export const avaiableDays = {
     ]
   },
   'thursday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -116,8 +104,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -128,8 +114,6 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',
@@ -138,7 +122,7 @@ export const avaiableDays = {
     ]
   },
   'friday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -148,8 +132,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -160,8 +142,6 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',
@@ -170,7 +150,7 @@ export const avaiableDays = {
     ]
   },
   'saturday' : {
-    'morning': [
+    'schedules': [
       '08:00',
       '08:30',
       '09:00',
@@ -180,8 +160,6 @@ export const avaiableDays = {
       '11:00',
       '11:30',
       '12:00',
-    ],
-    'evening': [
       '13:00',
       '13:30',
       '14:00',
@@ -192,8 +170,6 @@ export const avaiableDays = {
       '16:30',
       '17:00',
       '17:30',
-    ],
-    'night': [
       '18:00',
       '18:30',
       '19:00',

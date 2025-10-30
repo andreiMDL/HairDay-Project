@@ -4,59 +4,41 @@
       <div class="my-agenda-title">
         <h1>Sua Agenda</h1>
       </div>
-      <div class="container-datepicker">
-        <DpCalendar v-model="selectedDate" />
-      </div>
     </div>
     <div class="list-container">
-      <div class="morning-list-container">
-        <div class="morning-list-header">
-          <img src="/public/assets/yellow-sun-horizon.svg" alt="">
-          <span>Manhã</span>
+      <div class="all-list-container">
+        <div class="list-header">
+          <div class="header-left-content">
+            <img src="/public/assets/scissor-logo.svg" alt="">
+            <span>Cortes agendados</span>
+          </div>
+          <div class="container-datepicker datepicker-wrapper">
+            <DpCalendar v-model="selectedDate" v-bind:teleport="true" />
+            <button
+              class="clear-date-btn"
+              v-on:click="clearDate"
+            >
+              <img src="/assets/close-icon.svg" alt="Limpar data" />
+            </button>
+          </div>
         </div>
-        <div class="morning-list-body">
+        <div class="list-body">
           <ul class="schedule-item-list">
-            <li v-for="(appointment, index) in morningAppointments" v-bind:key="index" class="schedule-item">
-              <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.barber }}</span>
+            <li v-for="(appointment, index) in displayedAppointments" v-bind:key="index" class="schedule-item">
+              <div class="item-list-frame">
+                <img v-bind:src="getIconForTime(appointment.time)" alt="Ícone do período" class="time-icon">
+                <span class="scheduled-date">{{ dayjs(appointment.date).format('DD/MM/YYYY') }}</span>
+                <span class="scheduled-time">{{ appointment.time }}</span>
+                <span class="scheduled-customer">{{ appointment.barber }}</span>
+              </div>
+              <button
+                class="delete-btn"
+                v-on:click="deleteAppointment(appointment)"
+              >
+                <img src="/public/assets/icon-trash2.svg" alt="Excluir" />
+              </button>
             </li>
-            <li v-if="morningAppointments.length === 0" class="schedule-item">
-              <span>Nenhum agendamento para o dia selecionado.</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="evening-list-container">
-        <div class="evening-list-header">
-          <img src="/public/assets/yellow-cloud-sun.svg" alt="">
-          <span>Tarde</span>
-        </div>
-        <div class="evening-list-body">
-          <ul class="schedule-item-list">
-            <li v-for="(appointment, index) in eveningAppointments" v-bind:key="index" class="schedule-item">
-              <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.barber }}</span>
-            </li>
-            <li v-if="eveningAppointments.length === 0" class="schedule-item">
-              <span>Nenhum agendamento para o dia selecionado.</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="night-list-container">
-        <div class="night-list-header">
-          <img src="/public/assets/yellow-moon-stars.svg" alt="">
-          <span>Noite</span>
-        </div>
-        <div class="night-list-body">
-          <ul class="schedule-item-list">
-            <li v-for="(appointment, index) in nightAppointments" v-bind:key="index" class="schedule-item">
-              <span class="scheduled-time">{{ appointment.time }}</span>
-              <span class="scheduled-customer">{{ appointment.barber }}</span>
-            </li>
-            <li v-if="nightAppointments.length === 0" class="schedule-item">
+            <li v-if="displayedAppointments.length === 0" class="schedule-item">
               <span>Nenhum agendamento para o dia selecionado.</span>
             </li>
           </ul>
@@ -68,46 +50,87 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAppointmentsStore } from '@/stores/appointments';
+import { useToast } from "vue-toast-notification";
+import { useRouter } from 'vue-router';
 import DpCalendar from '@/components/DpCalendar.vue';
 import dayjs from 'dayjs';
+import axios from 'axios';
+import { serverError, successDelete } from '@/utils/toastMessages';
 
 defineOptions({
   name: 'MyAgenda'
 });
 
 const appointmentsStore = useAppointmentsStore();
-const selectedDate = ref(new Date());
+const selectedDate = ref(null);
+const toast = useToast();
+const router = useRouter();
+const API_URL = import.meta.env.VITE_API_URL;
 
 onMounted(() => {
   appointmentsStore.fetchAppointments();
 });
 
-const appointmentsForDay = computed(() => {
-  return appointmentsStore.allAppointments.filter(app =>
+const displayedAppointments = computed(() => {
+  const all = appointmentsStore.allAppointments;
+
+  if (!selectedDate.value) {
+    return [...all].sort((a, b) => {
+      const dateComparison = dayjs(a.date).diff(dayjs(b.date));
+      if (dateComparison !== 0) return dateComparison;
+      return a.time.localeCompare(b.time);
+    });
+  }
+
+  const filtered = all.filter(app =>
     dayjs(app.date).isSame(selectedDate.value, 'day')
   );
+  return [...filtered].sort((a, b) => a.time.localeCompare(b.time));
 });
 
-const morningAppointments = computed(() => {
-  return appointmentsForDay.value.filter(app => {
-    const hour = parseInt(app.time.split(':')[0]);
-    return hour < 12;
-  });
-});
+function clearDate() {
+  selectedDate.value = null;
+}
 
-const eveningAppointments = computed(() => {
-  return appointmentsForDay.value.filter(app => {
-    const hour = parseInt(app.time.split(':')[0]);
-    return hour >= 12 && hour < 18;
-  });
-});
+async function deleteAppointment(appointment) {
+  const token = localStorage.getItem('hairday_token');
 
-const nightAppointments = computed(() => {
-  return appointmentsForDay.value.filter(app => {
-    const hour = parseInt(app.time.split(':')[0]);
-    return hour >= 18 && hour < 21;
-  });
-});
+  if (!token) {
+    serverError(toast);
+    router.push('/');
+    return;
+  }
+
+  try {
+    await axios.delete(`${API_URL}/schedules/${appointment.id}`, {
+      headers: {
+      'Authorization': `Bearer ${token}`
+      }
+    });
+
+    successDelete(toast);
+    await appointmentsStore.fetchAppointments();
+  } catch (error) {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      console.error('Erro ao excluir agendamento: ', error);
+      router.push('/');
+    } else if (error.response && error.response.status === 404) {
+      await appointmentsStore.fetchAppointments();
+    }
+  }
+}
+
+function getIconForTime(timeString) {
+  if (!timeString) return '';
+  const hour = parseInt(timeString.split(':')[0]);
+  if (hour < 12) {
+    return '/public/assets/yellow-sun-horizon.svg';
+  } else if (hour < 18) {
+    return '/public/assets/yellow-cloud-sun.svg';
+  } else {
+    return '/public/assets/yellow-moon-stars.svg';
+  }
+};
 
 </script>
 <style>
@@ -126,7 +149,7 @@ body {
   flex-direction: column;
   box-shadow: inset 5px 0 20px var(--color-gray-900);
   flex: 2;
-  overflow-y: auto;
+  box-sizing: border-box;
   height: 100dvh;
 }
 
@@ -145,7 +168,7 @@ body {
 }
 
 .container-datepicker {
-  margin-right: 0;
+  margin: 0;
   margin-block: auto;
 }
 
@@ -156,7 +179,7 @@ body {
   margin-right: -1rem;
 }
 
-.morning-list-container {
+.all-list-container {
   display: flex;
   flex-direction: column;
   margin-top: 2rem;
@@ -167,18 +190,46 @@ body {
   }
 }
 
-.morning-list-header {
+.list-header {
   padding: 1rem;
   border-top-right-radius: 1rem;
   border-top-left-radius: 1rem;
   border: 1px solid var(--color-gray-600);
   display: flex;
-  margin-block: auto;
   align-items: center;
-  justify-items: center;
+  justify-content: space-between;
+  font-size: larger;
+  font-weight: 700;
 }
 
-.morning-list-body {
+.header-left-content {
+  display: flex;
+  align-items: center;
+}
+
+.datepicker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-date-btn {
+  appearance: none;
+  border: none;
+  background-color: var(--color-gray-800);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: ease 0.2s;
+}
+
+.clear-date-btn:hover {
+  scale: 1.3;
+}
+
+.list-body {
   border: 1px solid var(--color-gray-600);
   border-top: none;
   border-bottom-right-radius: 1rem;
@@ -186,79 +237,133 @@ body {
   font-size: larger;
 }
 
+.time-icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 1rem;
+}
 
-.scheduled-time {
+.scheduled-time, .scheduled-date, .scheduled-customer {
   font-weight: 600;
   margin-right: 1.5rem;
-}
-
-.evening-list-container {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2rem;
-
-  img {
-    width: 35px;
-    margin-right: .8rem;
-  }
-}
-
-.evening-list-header {
-  padding: 1rem;
-  border-top-right-radius: 1rem;
-  border-top-left-radius: 1rem;
-  border: 1px solid var(--color-gray-600);
-  display: flex;
-  margin-block: auto;
-  align-items: center;
-  justify-items: center;
-}
-
-.evening-list-body {
-  border: 1px solid var(--color-gray-600);
-  border-top: none;
-  border-bottom-right-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-  font-size: larger;
-}
-
-.night-list-container {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2rem;
-
-  img {
-    width: 35px;
-    margin-right: .8rem;
-  }
-}
-
-.night-list-header {
-  padding: 1rem;
-  border-top-right-radius: 1rem;
-  border-top-left-radius: 1rem;
-  border: 1px solid var(--color-gray-600);
-  display: flex;
-  margin-block: auto;
-  align-items: center;
-  justify-items: center;
-}
-
-.night-list-body {
-  border: 1px solid var(--color-gray-600);
-  border-top: none;
-  border-bottom-right-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-  font-size: larger;
 }
 
 .schedule-item-list {
   appearance: none;
   list-style: none;
+  margin-top: 1rem;
+  padding-inline: 2rem;
+}
+
+.item-list-frame {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: auto;
+  flex: 1;
 }
 
 .schedule-item {
-  padding-block: 1rem;
+
+  border-radius: 0.75rem;
+  padding: 0.8rem 1.2rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: ease .2s;
+}
+
+.schedule-item:hover {
+  background: var(--color-gray-700);
+}
+
+.delete-btn {
+  display: flex;
+  appearance: none;
+  border: none;
+  opacity: 0;
+  background-color: var(--color-gray-700);
+  transition: ease .2s;
+}
+
+.delete-btn img {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 0 2px rgba(255, 200, 0, 0.3));
+}
+
+.schedule-item:hover .delete-btn {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.delete-btn:hover img {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+
+@media (max-width: 768px) {
+  .list-header {
+    background-color: var(--color-gray-700);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.8rem;
+  }
+
+  .container-datepicker {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .header-left-content {
+     display: flex;
+     align-items: center;
+  }
+
+  .schedule-item-list {
+    padding-inline: 0.5rem;
+  }
+
+  .schedule-item {
+    padding: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .time-icon {
+    display: none;
+  }
+
+  .item-list-frame {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .list-body {
+    background-color: var(--color-gray-700);
+    font-size: 1rem;
+  }
+
+  .scheduled-time, .scheduled-date, .scheduled-customer {
+    margin-right: 0.5rem;
+  }
+
+  .delete-btn {
+    background-color: var(--color-gray-700);
+    opacity: 1;
+  }
+
+
+  .delete-btn img {
+    width: 24px;
+    height: 24px;
+  }
+
 }
 
 @media (max-width: 900px) {
