@@ -77,3 +77,19 @@ export const successDelete = (toast, message = 'Agendamento removido com sucesso
     dismissible: true,
   });
 };
+
+export const invalidEmail = (toast, message = 'Por favor, insira um formato de email válido.') => {
+  toast.error(message, {
+    position: 'top',
+    duration: 3000,
+    dismissible: true,
+  });
+};
+
+export const weakPassword = (toast, message = 'A senha deve ter entre 8 a 50 caracteres, sendo um maiúsculo e um minúsculo') => {
+  toast.error(message, {
+    position: 'top',
+    duration: 3000,
+    dismissible: true,
+  });
+};

@@ -17,6 +17,8 @@
     "@vuepic/vue-datepicker": "^11.0.2",
     "axios": "^1.13.1",
     "dayjs": "^1.11.13",
+    "email-validator": "^2.0.4",
+    "password-validator": "^5.3.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",

@@ -33,7 +33,7 @@
               </div>
               <button
                 class="delete-btn"
-                v-on:click="deleteAppointment(appointment)"
+                v-on:click="openDeleteModal(appointment)"
               >
                 <img src="/public/assets/icon-trash2.svg" alt="Excluir" />
               </button>
@@ -46,16 +46,25 @@
       </div>
     </div>
   </div>
+  <ConfirmationModal
+    v-model="modalActive"
+    v-bind:appointment="selectedAppointment"
+    v-on:confirm="deleteAppointment"
+  />
 </template>
 <script setup>
+import { serverError, successDelete } from '@/utils/toastMessages';
 import { ref, computed, onMounted } from 'vue';
 import { useAppointmentsStore } from '@/stores/appointments';
-import { useToast } from "vue-toast-notification";
 import { useRouter } from 'vue-router';
+import { useToast } from "vue-toast-notification";
+import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import DpCalendar from '@/components/DpCalendar.vue';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { serverError, successDelete } from '@/utils/toastMessages';
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 defineOptions({
   name: 'MyAgenda'
@@ -63,9 +72,10 @@ defineOptions({
 
 const appointmentsStore = useAppointmentsStore();
 const selectedDate = ref(null);
-const toast = useToast();
+const modalActive = ref(false);
+const selectedAppointment = ref(null);
 const router = useRouter();
-const API_URL = import.meta.env.VITE_API_URL;
+const toast = useToast();
 
 onMounted(() => {
   appointmentsStore.fetchAppointments();
@@ -92,6 +102,12 @@ function clearDate() {
   selectedDate.value = null;
 }
 
+function openDeleteModal(appointment) {
+  console.log('appointment: ', appointment);
+  selectedAppointment.value = appointment;
+  modalActive.value = true;
+}
+
 async function deleteAppointment(appointment) {
   const token = localStorage.getItem('hairday_token');
 
@@ -111,11 +127,13 @@ async function deleteAppointment(appointment) {
     successDelete(toast);
     await appointmentsStore.fetchAppointments();
   } catch (error) {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      console.error('Erro ao excluir agendamento: ', error);
+    console.error('Erro ao excluir agendamento:', error);
+    if (error.response?.status === 401 || error.response?.status === 403) {
       router.push('/');
-    } else if (error.response && error.response.status === 404) {
+    } else if (error.response?.status === 404) {
       await appointmentsStore.fetchAppointments();
+    } else {
+      serverError(toast);
     }
   }
 }

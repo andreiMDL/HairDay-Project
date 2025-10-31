@@ -174,7 +174,6 @@ async function handlelogin() {
       failedSingup(toast);
     }
 
-    console.error('Login Error:', error);
     failedLogin(toast);
   }
 }

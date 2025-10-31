@@ -36,7 +36,7 @@
         <DropdownButton v-model="barberName" v-bind:class="{ 'has-error': errors.barberName }" />
       </div>
       <div class="schedule-submit">
-        <button class="submit-schedule" v-on:click="validateFields">
+        <button class="submit-schedule" v-on:click="validateFields" v-bind:disabled="isLoading">
           AGENDAR
         </button>
       </div>
@@ -65,8 +65,10 @@ const appointmentsStore = useAppointmentsStore();
 const barberName = ref('');
 const selectedDate = ref(new Date());
 const selectedHour = ref(null);
+const isLoading = ref(false);
 const toast = useToast()
 const { errors, validate } = validateBeforeSubmit();
+
 
 const appointmentsForSelectedDay = computed(() => {
   return appointmentsStore.allAppointments.filter(app => {
@@ -101,6 +103,7 @@ const showError = () =>
   })
 
 async function validateFields() {
+  if (isLoading.value) return;
   const fieldsToValidate = {
     barberName: barberName.value,
     selectedHour: selectedHour.value,
@@ -110,6 +113,8 @@ async function validateFields() {
     showError();
     return;
   }
+
+  isLoading.value = true;
 
   const scheduled_formatISO = dayjs(selectedDate.value)
     .set('hour', parseInt(selectedHour.value.split(':')[0]))
@@ -147,6 +152,8 @@ async function validateFields() {
       toast.error(errorMessage, { position: 'top', duration: 4000 });
 
     }
+  } finally {
+    isLoading.value = false;
   }
 };
 

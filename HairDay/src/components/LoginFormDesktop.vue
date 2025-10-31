@@ -18,7 +18,7 @@
 				<input type="email" name="email" placeholder="Email" v-model="loginEmail"
 					v-bind:class="{ 'has-error': loginErrors.email }">
 				<input type="password" name="password" placeholder="Senha" v-model="loginPassword"
-					v-bind:class="{ 'has-error': loginErrors.email }">
+					v-bind:class="{ 'has-error': loginErrors.password }">
 				<a class="forgot-password" href="#">Esqueci minha senha</a>
 				<button>Entrar</button>
 			</form>
@@ -40,14 +40,28 @@
 	</div>
 </template>
 <script setup>
-import { emailAlreadyExists, failedLogin, failedSingup, incorrectInfos, mandatoryFields, serverError, successLogin, successSignup } from '@/utils/toastMessages';
+import {
+	emailAlreadyExists,
+	failedLogin,
+	failedSingup,
+	incorrectInfos,
+	mandatoryFields,
+	serverError,
+	successLogin,
+	successSignup,
+	invalidEmail,
+  weakPassword,
+} from '@/utils/toastMessages';
+import schema from '@/utils/passwordSchema';
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toast-notification';
+import validator from 'email-validator';
 import axios from 'axios';
 
 const router = useRouter();
 const API_URL = import.meta.env.VITE_API_URL;
+
 
 const isPanelActive = ref(false);
 
@@ -66,12 +80,12 @@ const loginErrors = reactive({
 	password: false,
 });
 
+
 async function handleLogin() {
 	loginErrors.email = false;
 	loginErrors.password = false;
 
 	let hasError = false;
-
 	if (!loginEmail.value) {
 		loginErrors.email = true;
 		hasError = true;
@@ -82,7 +96,7 @@ async function handleLogin() {
 	}
 
 	if (hasError) {
-    mandatoryFields(toast);
+		mandatoryFields(toast);
     return;
   }
 
@@ -98,25 +112,24 @@ async function handleLogin() {
 			localStorage.setItem('hairday_token', token);
 		} else {
        throw new Error('Token não recebido do servidor.');
-    }
+			}
 
-		successLogin(toast);
-		router.push('/schedules');
+			successLogin(toast);
+			router.push('/schedules');
 	} catch (error) {
 		loginErrors.email = true;
-      loginErrors.password = true;
+		loginErrors.password = true;
 
     if (error.response) {
-      if (error.response.status === 401) {
+			if (error.response.status === 401) {
         incorrectInfos(toast);
       }
     } else if (error.request) {
       serverError(toast);
     } else {
-      failedSingup(toast);
+			failedSingup(toast);
     }
 
-    console.error('Login Error:', error);
     failedLogin(toast);
 	}
 };
@@ -126,7 +139,7 @@ const signupEmail = ref('');
 const signupPassword = ref('');
 
 async function handleSignup() {
-  signupErrors.name = false;
+	signupErrors.name = false;
   signupErrors.email = false;
   signupErrors.password = false;
 
@@ -136,19 +149,35 @@ async function handleSignup() {
     signupErrors.name = true;
     hasError = true;
   }
-  if (!signupEmail.value) {
+  if (!signupEmail.value.trim()) {
     signupErrors.email = true;
     hasError = true;
   }
-  if (!signupPassword.value) {
+
+  if (!signupPassword.value.trim()) {
     signupErrors.password = true;
     hasError = true;
   }
 
   if (hasError) {
-    mandatoryFields(toast);
+		mandatoryFields(toast);
     return;
   }
+
+	if (!validator.validate(signupEmail.value)) {
+		signupErrors.email = true;
+		hasError = true;
+		invalidEmail(toast);
+		return
+	}
+
+	if (!schema.validate(signupPassword.value)) {
+		console.log(schema.validate(signupPassword.value));
+		signupErrors.password = true;
+		hasError = true;
+		weakPassword(toast);
+		return
+	}
 
   try {
     const response = await axios.post(`${API_URL}/users`, {
