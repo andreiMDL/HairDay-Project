@@ -15,7 +15,6 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toast-notification';
 import validator from 'email-validator';
-import axios from 'axios';
 import api from '@/services/api';
 
 export function useAuth() {
@@ -136,7 +135,7 @@ export function useAuth() {
     }
 
     try {
-      const response = await axios.post('/users', {
+      const response = await api.post('/users', {
         name: signupName.value,
         email: signupEmail.value,
         password: signupPassword.value,
