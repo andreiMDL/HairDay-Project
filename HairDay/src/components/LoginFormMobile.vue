@@ -22,7 +22,7 @@
         <div class="logo-container">
           <img src="/assets/Logo-blur.svg" alt="">
         </div>
-        <form action="#" class="sign-in-form" v-on:submit.prevent="handlelogin">
+        <form action="#" class="sign-in-form" v-on:submit.prevent="handleLogin">
           <h1>Faça Login</h1>
           <input type="email" name="email" placeholder="Email" v-model="loginEmail"
             v-bind:class="{ 'has-error': loginErrors.email }">
@@ -38,145 +38,25 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive } from 'vue';
-import { useToast } from 'vue-toast-notification';
-import { useRouter } from 'vue-router';
-import { emailAlreadyExists, failedLogin, failedSingup, incorrectInfos, mandatoryFields, serverError, successLogin, successSignup } from '@/utils/toastMessages.js';
-import axios from 'axios';
-
-const toast = useToast();
-const router = useRouter();
-const API_URL = import.meta.env.VITE_API_URL;
+import { useAuth } from '@/composables/useAuth.js';
+import { ref } from 'vue';
 
 const isSignUp = ref(false);
-
-const signupName = ref('');
-const signupEmail = ref('');
-const signupPassword = ref('');
-const loginEmail = ref('');
-const loginPassword = ref('');
-
-const signupErrors = reactive({
-  name: false,
-  email: false,
-  password: false,
-});
-
-const loginErrors = reactive({
-  email: false,
-  password: false,
-});
-
 function toggleForm() {
   isSignUp.value = !isSignUp.value;
 }
 
-async function handleSignup() {
-  signupErrors.name = false;
-  signupErrors.email = false;
-  signupErrors.password = false;
-
-  let hasError = false;
-
-  if (!signupName.value) {
-    signupErrors.name = true;
-    hasError = true;
-  }
-  if (!signupEmail.value) {
-    signupErrors.email = true;
-    hasError = true;
-  }
-  if (!signupPassword.value) {
-    signupErrors.password = true;
-    hasError = true;
-  }
-
-  if (hasError) {
-    mandatoryFields(toast);
-    return;
-  }
-
-  try {
-    const response = await axios.post(`${API_URL}/users`, {
-      name: signupName.value,
-      email: signupEmail.value,
-      password: signupPassword.value,
-    });
-
-    const token = response.data.token;
-
-    if (token) {
-      localStorage.setItem('hairday_token', token);
-    }
-
-    signupName.value = '';
-    signupEmail.value = '';
-    signupPassword.value = '';
-
-    successSignup(toast);
-    router.push('/schedules');
-  } catch (error) {
-    if (error.response) {
-      signupErrors.email = true;
-      emailAlreadyExists(toast);
-    } else if (error.request) {
-      serverError(toast);
-    } else {
-      failedSingup(toast);
-    }
-  }
-}
-
-async function handlelogin() {
-  loginErrors.email = false;
-  loginErrors.password = false;
-
-  let hasError = false;
-
-  if (!loginEmail.value) {
-    loginErrors.email = true;
-    hasError = true;
-  }
-  if (!loginPassword.value) {
-    loginErrors.password = true;
-    hasError = true;
-  }
-  if (hasError) {
-    mandatoryFields(toast);
-    return;
-  }
-
-  try {
-    const response = await axios.post(`${API_URL}/login`, {
-      email: loginEmail.value,
-      password: loginPassword.value,
-    });
-
-    const token = response.data.token;
-
-    if (token) {
-      localStorage.setItem('hairday_token', token);
-    }
-
-    successLogin(toast);
-    router.push('/schedules');
-  } catch (error) {
-      loginErrors.email = true;
-      loginErrors.password = true;
-
-    if (error.response) {
-      if (error.response.status === 401) {
-        incorrectInfos(toast);
-      }
-    } else if (error.request) {
-      serverError(toast);
-    } else {
-      failedSingup(toast);
-    }
-
-    failedLogin(toast);
-  }
-}
+const {
+  loginEmail,
+  loginPassword,
+  loginErrors,
+  signupName,
+  signupEmail,
+  signupPassword,
+  signupErrors,
+  handleLogin,
+  handleSignup
+} = useAuth();
 </script>
 <style scoped>
 .container {

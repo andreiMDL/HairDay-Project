@@ -1,16 +1,16 @@
 <template>
   <VueDatePicker
-    :model-value="props.modelValue"
-    @date-update="updateDate"
+    v-bind:modelValue="props.modelValue"
+    v-on:date-update="updateDate"
     class="custom-datepicker"
-    week-start="0"
-    :locale="locale"
-    month-name-format="long"
-    :disabled-week-days="disabledDays"
-    :day-names="dayNames"
+    weekStart="0"
+    v-bind:locale="locale"
+    monthNameFormat="long"
+    v-bind:disabledWeekDays="disabledDays"
+    v-bind:dayNames="dayNames"
     format="dd/MM/yyyy"
-    :teleport="props.teleport"
-     :clearable="false"
+    v-bind:teleport="props.teleport"
+    v-bind:clearable="false"
   />
 </template>
 

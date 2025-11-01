@@ -1,7 +1,7 @@
 <template>
-	<div class="container" :class="{ 'right-panel-active': isPanelActive }" id="container">
+	<div class="container" v-bind:class="{ 'right-panel-active': isPanelActive }" id="container">
 		<div class="form-container sign-up-container">
-			<form action="#" @submit.prevent="handleSignup">
+			<form action="#" v-on:submit.prevent="handleSignup">
 				<h1>Crie sua Conta</h1>
 				<input type="text" name="name" placeholder="Nome" v-model="signupName"
 					v-bind:class="{ 'has-error': signupErrors.name }">
@@ -13,7 +13,7 @@
 			</form>
 		</div>
 		<div class="form-container sign-in-container">
-			<form action="#" @submit.prevent="handleLogin">
+			<form action="#" v-on:submit.prevent="handleLogin">
 				<h1>Faça login</h1>
 				<input type="email" name="email" placeholder="Email" v-model="loginEmail"
 					v-bind:class="{ 'has-error': loginErrors.email }">
@@ -28,189 +28,32 @@
 				<div class="overlay-panel overlay-left">
 					<h1>Já possui uma conta?</h1>
 					<p>Faça login para acessar sua agenda e gerenciar seus horários.</p>
-					<button class="ghost" @click="isPanelActive = false" id="login">Entrar</button>
+					<button class="ghost" v-on:click="isPanelActive = false" id="login">Entrar</button>
 				</div>
 				<div class="overlay-panel overlay-right">
 					<h1>Ainda não é possui uma conta?</h1>
 					<p>Cadastre-se para começar a organizar seus agendamentos e simplificar seu dia a dia.</p>
-					<button class="ghost" @click="isPanelActive = true" id="signUp">Cadastre-se</button>
+					<button class="ghost" v-on:click="isPanelActive = true" id="signUp">Cadastre-se</button>
 				</div>
 			</div>
 		</div>
 	</div>
 </template>
 <script setup>
-import {
-	emailAlreadyExists,
-	failedLogin,
-	failedSingup,
-	incorrectInfos,
-	mandatoryFields,
-	serverError,
-	successLogin,
-	successSignup,
-	invalidEmail,
-  weakPassword,
-} from '@/utils/toastMessages';
-import schema from '@/utils/passwordSchema';
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toast-notification';
-import validator from 'email-validator';
-import axios from 'axios';
+import { useAuth } from '@/composables/useAuth.js';
 
-const router = useRouter();
-const API_URL = import.meta.env.VITE_API_URL;
-
-
-const isPanelActive = ref(false);
-
-const loginEmail = ref('');
-const loginPassword = ref('');
-const toast = useToast();
-
-const signupErrors = reactive({
-	name: false,
-	email: false,
-	password: false,
-});
-
-const loginErrors = reactive({
-	email: false,
-	password: false,
-});
-
-
-async function handleLogin() {
-	loginErrors.email = false;
-	loginErrors.password = false;
-
-	let hasError = false;
-	if (!loginEmail.value) {
-		loginErrors.email = true;
-		hasError = true;
-	}
-	if (!loginPassword.value) {
-		loginErrors.password = true;
-		hasError = true;
-	}
-
-	if (hasError) {
-		mandatoryFields(toast);
-    return;
-  }
-
-	try {
-		const response = await axios.post(`${API_URL}/login`, {
-			email: loginEmail.value,
-      password: loginPassword.value,
-		})
-
-		const token = response.data.token;
-
-		if (token) {
-			localStorage.setItem('hairday_token', token);
-		} else {
-       throw new Error('Token não recebido do servidor.');
-			}
-
-			successLogin(toast);
-			router.push('/schedules');
-	} catch (error) {
-		loginErrors.email = true;
-		loginErrors.password = true;
-
-    if (error.response) {
-			if (error.response.status === 401) {
-        incorrectInfos(toast);
-      }
-    } else if (error.request) {
-      serverError(toast);
-    } else {
-			failedSingup(toast);
-    }
-
-    failedLogin(toast);
-	}
-};
-
-const signupName = ref('');
-const signupEmail = ref('');
-const signupPassword = ref('');
-
-async function handleSignup() {
-	signupErrors.name = false;
-  signupErrors.email = false;
-  signupErrors.password = false;
-
-  let hasError = false;
-
-  if (!signupName.value) {
-    signupErrors.name = true;
-    hasError = true;
-  }
-  if (!signupEmail.value.trim()) {
-    signupErrors.email = true;
-    hasError = true;
-  }
-
-  if (!signupPassword.value.trim()) {
-    signupErrors.password = true;
-    hasError = true;
-  }
-
-  if (hasError) {
-		mandatoryFields(toast);
-    return;
-  }
-
-	if (!validator.validate(signupEmail.value)) {
-		signupErrors.email = true;
-		hasError = true;
-		invalidEmail(toast);
-		return
-	}
-
-	if (!schema.validate(signupPassword.value)) {
-		console.log(schema.validate(signupPassword.value));
-		signupErrors.password = true;
-		hasError = true;
-		weakPassword(toast);
-		return
-	}
-
-  try {
-    const response = await axios.post(`${API_URL}/users`, {
-      name: signupName.value,
-      email: signupEmail.value,
-      password: signupPassword.value,
-    });
-
-		const token = response.data.token;
-
-		if (token) {
-			localStorage.setItem('hairday_token', token);
-		}
-
-    signupName.value = '';
-    signupEmail.value = '';
-    signupPassword.value = '';
-
-		successSignup(toast);
-		router.push('/schedules');
-
-  } catch (error) {
-    if (error.response) {
-      signupErrors.email = true;
-      emailAlreadyExists(toast);
-    } else if (error.request) {
-      serverError(toast);
-    } else {
-      failedSingup(toast);
-    }
-  }
-}
-
+const {
+  isPanelActive,
+  loginEmail,
+  loginPassword,
+  loginErrors,
+  handleLogin,
+  signupName,
+  signupEmail,
+  signupPassword,
+  signupErrors,
+  handleSignup
+} = useAuth();
 </script>
 <style scoped>
 
@@ -522,7 +365,7 @@ input:hover {
 }
 
 .has-error {
-	border-color: #e74c4c;
-	box-shadow: 0 0 5px #e74c4c;
+	border-color: #e74c4c !important;
+	box-shadow: 0 0 5px #e74c4c !important;
 }
 </style>

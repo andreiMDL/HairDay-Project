@@ -61,9 +61,7 @@ import { useToast } from "vue-toast-notification";
 import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import DpCalendar from '@/components/DpCalendar.vue';
 import dayjs from 'dayjs';
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from '@/services/api';
 
 
 defineOptions({
@@ -118,7 +116,7 @@ async function deleteAppointment(appointment) {
   }
 
   try {
-    await axios.delete(`${API_URL}/schedules/${appointment.id}`, {
+    await api.delete(`/schedules/${appointment.id}`, {
       headers: {
       'Authorization': `Bearer ${token}`
       }

@@ -6,7 +6,7 @@
         <span class="schedule-input-title">Data</span>
       </div>
       <div class="date-input-container">
-        <DpCalendar v-model="selectedDate" :min-date="new Date()" />
+        <DpCalendar v-model="selectedDate" v-bind:minDate="new Date()" />
       </div>
       <div class="schedule-picker">
         <span class="schedule-picker-title">Horários</span>
@@ -45,22 +45,21 @@
 </template>
 <script setup>
 import { computed, ref } from 'vue';
-import { avaiableDays, dayMap } from '@/stores/avaiableDays';
-import { validateBeforeSubmit } from '@/stores/validateFields';
+import { avaiableDays, dayMap } from '@/utils/avaiableDays';
+import { validateBeforeSubmit } from '@/composables/validateFields';
 import { useToast } from "vue-toast-notification";
 import { useAppointmentsStore } from '@/stores/appointments';
 import { useRouter } from 'vue-router';
 import DropdownButton from '@/components/DropdownButton.vue';
 import DpCalendar from '@/components/DpCalendar.vue'
 import dayjs from 'dayjs';
-import axios from 'axios';
+import api from '@/services/api';
 
 defineOptions({
   name: 'HairDaySchedules'
 });
 
 const router = useRouter();
-const API_URL = import.meta.env.VITE_API_URL;
 const appointmentsStore = useAppointmentsStore();
 const barberName = ref('');
 const selectedDate = ref(new Date());
@@ -128,7 +127,7 @@ async function validateFields() {
   const token = localStorage.getItem('hairday_token');
 
   try {
-    const response = await axios.post(`${API_URL}/schedules`, newAppointmentData, {
+    const response = await api.post('/schedules', newAppointmentData, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 const saltRounds = 10;
 
 export function create_user({ request, response, database }) {
+  const JWT_SECRET = process.env.JWT_SECRET;
   const { name, email, password } = request.body;
 
   const existingUser = database.select('users', { email });
@@ -27,9 +28,23 @@ export function create_user({ request, response, database }) {
     created_at: new Date(),
   };
 
+
   database.insert('users', user);
 
-  return response.writeHead(201).end();
+  const payload = {
+    id: user.id,
+    name: user.name,
+  }
+  const token = jwt.sign(payload, JWT_SECRET, {});
+  const { password: _, ...user_data } = user;
+
+  return response.writeHead(201).end(
+    JSON.stringify({
+      message: 'Signup successful!',
+      user: user.data,
+      token: token,
+    })
+  );
 };
 
 export function login_user({ request, response, database }) {

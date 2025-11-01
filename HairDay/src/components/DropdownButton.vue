@@ -1,6 +1,6 @@
 <template>
   <div class="dropdown-wrapper">
-    <button class="barber-dropdown-button" @click="toggleDropdown">
+    <button class="barber-dropdown-button" v-on:click="toggleDropdown">
       <div class="barber-info">
         <span class="barber-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -22,9 +22,9 @@
     <div v-if="isOpen" class="dropdown-list">
       <div
         v-for="barber in barbers"
-        :key="barber.id"
+        v-bind:key="barber.id"
         class="dropdown-item"
-        @click="selectBarber(barber)"
+        v-on:click="selectBarber(barber)"
       >
         <div class="barber-info">
           <span class="barber-icon">

@@ -1,11 +1,10 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 import { useToast } from "vue-toast-notification";
-import axios from "axios";
 import dayjs from "dayjs";
+import api from '@/services/api';
 
 const toast = useToast();
-const API_URL = import.meta.env.VITE_API_URL;
 
 export const useAppointmentsStore = defineStore('appointments', () => {
   const allAppointments = ref([]);
@@ -31,7 +30,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     }
 
     try {
-      const response = await axios.get(`${API_URL}/schedules`, {
+      const response = await api.get('/schedules', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
