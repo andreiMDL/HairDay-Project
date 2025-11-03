@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { sendMail } from '../services/mailService.js';
+import dayjs from 'dayjs';
 
-export function create_schedule({ request, response, database }) {
+dayjs.locale('pt-br');
+
+export async function create_schedule({ request, response, database }) {
   const user_id =  request.userId;
 
   const { scheduled_for, barber } = request.body;
@@ -35,6 +39,28 @@ export function create_schedule({ request, response, database }) {
 
   database.insert('schedules', schedule);
 
+  try {
+    const formattedDate = dayjs(scheduled_for).format('DD [de] MMMM [de] YYYY');
+    const formattedTime = dayjs(scheduled_for).format('HH:mm');
+
+    const emailSubject = `💈 Agendamento Confirmado: ${barber} às ${formattedTime}`;
+
+    const emailBody = `
+      <h1>Olá, ${user.name}!</h1>
+      <p>Seu agendamento na HairDay foi confirmado com sucesso.</p>
+      <ul>
+        <li><strong>Profissional:</strong> ${barber}</li>
+        <li><strong>Data:</strong> ${formattedDate}</li>
+        <li><strong>Horário:</strong> ${formattedTime}</li>
+      </ul>
+      <p>Obrigado por agendar conosco!</p>
+    `;
+
+    await sendMail(user.email, emailSubject, emailBody);
+  } catch (emailError) {
+    console.error(`Falha ao enviar email de confirmação para ${user.email}:`, emailError.message);
+  }
+
   return response.writeHead(201).end(JSON.stringify(schedule));
 };
 
@@ -57,10 +83,43 @@ export function get_schedules({ request, response, database }) {
   return response.end(JSON.stringify(userSchedules));
 };
 
-export function remove_schedule({ request, response, database }) {
+export async function remove_schedule({ request, response, database }) {
   const { id } = request.params;
+  const user_id = request.userId;
+
+  const [schedule] = database.select('schedules', { id: id });
+
+  if (!schedule) {
+    return response.writeHead(404).end(
+      JSON.stringify({ message: 'Agendamento não encontrado.' })
+    );
+  }
 
   database.delete('schedules', id);
+
+  try {
+    const { scheduled_for, barber, user_name, user_email } = schedule;
+
+    const formattedDate = dayjs(scheduled_for).format('DD [de] MMMM [de] YYYY');
+    const formattedTime = dayjs(scheduled_for).format('HH:mm');
+
+    const emailSubject = `💈 Agendamento Cancelado: ${barber} às ${formattedTime}`;
+
+    const emailBody = `
+      <h1>Olá, ${user_name}!</h1>
+      <p>Seu agendamento na HairDay foi CANCELADO.</p>
+      <ul>
+        <li><strong>Profissional:</strong> ${barber}</li>
+        <li><strong>Data:</strong> ${formattedDate}</li>
+        <li><strong>Horário:</strong> ${formattedTime}</li>
+      </ul>
+      <p>Realize um novo agendamento quando quiser!</p>
+    `;
+
+    await sendMail(user_email, emailSubject, emailBody);
+  } catch (emailError) {
+    console.error(`Falha ao enviar email de cancelamento para ${schedule.user_email}:`, emailError.message);
+  }
 
   return response.end();
 };
