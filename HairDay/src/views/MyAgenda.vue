@@ -9,7 +9,7 @@
       <div class="all-list-container">
         <div class="list-header">
           <div class="header-left-content">
-            <img src="/public/assets/scissor-logo.svg" alt="">
+            <img src="/assets/scissor-logo.svg" alt="">
             <span>Cortes agendados</span>
           </div>
           <div class="container-datepicker datepicker-wrapper">
@@ -35,7 +35,7 @@
                 class="delete-btn"
                 v-on:click="openDeleteModal(appointment)"
               >
-                <img src="/public/assets/icon-trash2.svg" alt="Excluir" />
+                <img src="/assets/icon-trash2.svg" alt="Excluir" />
               </button>
             </li>
             <li v-if="displayedAppointments.length === 0" class="schedule-item">
@@ -140,11 +140,11 @@ function getIconForTime(timeString) {
   if (!timeString) return '';
   const hour = parseInt(timeString.split(':')[0]);
   if (hour < 12) {
-    return '/public/assets/yellow-sun-horizon.svg';
+    return '/assets/yellow-sun-horizon.svg';
   } else if (hour < 18) {
-    return '/public/assets/yellow-cloud-sun.svg';
+    return '/assets/yellow-cloud-sun.svg';
   } else {
-    return '/public/assets/yellow-moon-stars.svg';
+    return '/assets/yellow-moon-stars.svg';
   }
 };
 
