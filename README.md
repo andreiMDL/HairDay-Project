@@ -78,3 +78,18 @@ npm install
 # 4. Inicie o servidor
 npm run server
 # (API estará rodando em http://localhost:3000)
+
+# 1. Em um NOVO terminal, navegue até a pasta do frontend
+cd HairDay
+
+# 2. Instale as dependências
+# Se você receber erros do ESLint/Airbnb, use:
+npm install --legacy-peer-deps
+
+# 3. Crie o arquivo .env
+# Crie um .env na raiz do HairDay com a URL da sua API local
+echo "VITE_API_URL=http://localhost:3000" > .env
+
+# 4. Inicie o app
+npm run dev
+# (Aplicação estará rodando em http://localhost:5173)
